@@ -1,24 +1,39 @@
 'use client';
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { PaymentModal } from '@/components/payment-module/payment-modal';
+import { PaymentInfo } from '@/components/payment-module/payment-modal';
+import { useAuth } from './context/AuthContext';
 
-const page = () => {
-  // 결제 정보
-  const paymentInfo = {
-    merchantName: '테크몰',
-    productName: 'product.name',
-    quantity: 1,
-    price: 10000,
-    totalAmount: 1 * 10000,
-    orderId: `ORDER-${Date.now()}`,
-  };
-  // 결제 완료 처리
-  const handlePaymentComplete = () => {
-    // 주문 완료 페이지로 이동
-  };
+const Page = () => {
+  const [paymentInfo, setPaymentInfo] = useState<PaymentInfo | null>(null);
+  const { isAuthenticated } = useAuth();
+  const router = useRouter();
 
-  return <PaymentModal paymentInfo={paymentInfo} onPaymentComplete={handlePaymentComplete} />;
+  useEffect(() => {
+    if (!isAuthenticated) {
+      const currentUrl = window.location.href;
+      router.replace(`/login?returnUrl=${encodeURIComponent(currentUrl)}`);
+      return;
+    }
+
+    // URL에서 결제 정보 가져오기
+    const searchParams = new URLSearchParams(window.location.search);
+    const info: PaymentInfo = {
+      merchantName: searchParams.get('merchantName') || '',
+      productName: searchParams.get('productName') || '',
+      quantity: Number(searchParams.get('quantity')) || 0,
+      price: Number(searchParams.get('price')) || 0,
+      totalAmount: Number(searchParams.get('totalAmount')) || 0,
+      orderId: searchParams.get('orderId') || '',
+    };
+    setPaymentInfo(info);
+  }, [isAuthenticated, router]);
+
+  if (!isAuthenticated || !paymentInfo) return null;
+
+  return <PaymentModal paymentInfo={paymentInfo} />;
 };
 
-export default page;
+export default Page;

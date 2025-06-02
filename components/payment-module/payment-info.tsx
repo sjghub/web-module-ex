@@ -37,7 +37,7 @@ export function PaymentInfoSection({
       </div>
 
       <div className="mt-4 border border-gray-200 rounded-lg p-4">
-        <p className="text-sm text-gray-600">테크몰에 3번이나 방문하셨네요!</p>
+        <p className="text-sm text-gray-600">쿠팡에 3번이나 방문하셨네요!</p>
         <p className="text-sm text-gray-600">최대 혜택을 받을 수 있는 카드를 추천해드릴까요?</p>
         <div className="flex justify-end mt-2">
           <a

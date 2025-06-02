@@ -3,28 +3,29 @@
 import { useState, useRef, useEffect, useMemo, useCallback } from 'react';
 import { VisuallyHidden } from '@/components/ui/visually-hidden';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, AlertCircle, X } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { Logo } from '@/components/ui/logo';
 import { PaymentInfoSection } from './payment-info';
 import { CardSelectionSection } from './card-selection';
 import { PasswordInputStep } from './password-input';
+import { PaymentComplete } from './payment-complete';
 import { CARDS, PaymentStep, CardInfo } from '@/constants/payment';
 
-interface PaymentModalProps {
-  paymentInfo: {
-    merchantName: string;
-    productName: string;
-    quantity: number;
-    price: number;
-    totalAmount: number;
-    orderId: string;
-  };
-  onPaymentComplete?: () => void;
+export interface PaymentInfo {
+  merchantName: string;
+  productName: string;
+  quantity: number;
+  price: number;
+  totalAmount: number;
+  orderId: string;
 }
 
-export function PaymentModal({ paymentInfo, onPaymentComplete }: PaymentModalProps) {
+interface PaymentModalProps {
+  paymentInfo: PaymentInfo;
+}
+
+export function PaymentModal({ paymentInfo }: PaymentModalProps) {
   const modalRef = useRef<HTMLDivElement>(null);
-  const closeButtonRef = useRef<HTMLButtonElement>(null);
 
   // 모달이 열릴 때 포커스 관리
   useEffect(() => {
@@ -82,13 +83,6 @@ export function PaymentModal({ paymentInfo, onPaymentComplete }: PaymentModalPro
     }
   }, [selectedCard]);
 
-  // 결제 완료 후 처리 - 이벤트 핸들러 메모이제이션
-  const handleComplete = useCallback(() => {
-    if (onPaymentComplete) {
-      onPaymentComplete();
-    }
-  }, [onPaymentComplete]);
-
   // 할인 금액 계산 - 계산 함수 메모이제이션
   const calculateDiscount = useMemo(() => {
     if (!selectedCard) return 0;
@@ -99,6 +93,25 @@ export function PaymentModal({ paymentInfo, onPaymentComplete }: PaymentModalPro
   const calculateFinalAmount = useMemo(() => {
     return paymentInfo.totalAmount - calculateDiscount;
   }, [paymentInfo.totalAmount, calculateDiscount]);
+
+  // 결제 완료 후 처리 - 이벤트 핸들러 메모이제이션
+  const handleComplete = useCallback(() => {
+    const paymentResult = {
+      type: 'PAYMENT_COMPLETE',
+      data: {
+        orderId: paymentInfo.orderId,
+        amount: calculateFinalAmount,
+        discount: calculateDiscount,
+        cardInfo: selectedCard,
+        timestamp: new Date().toISOString(),
+      },
+    };
+
+    // 부모 창으로 메시지 전달
+    if (window.parent !== window) {
+      window.parent.postMessage(paymentResult, '*');
+    }
+  }, [paymentInfo.orderId, calculateFinalAmount, calculateDiscount, selectedCard]);
 
   return (
     <div
@@ -120,35 +133,29 @@ export function PaymentModal({ paymentInfo, onPaymentComplete }: PaymentModalPro
         {/* 헤더 */}
         <div className="relative flex items-center justify-center h-16">
           <Logo className="text-2xl" />
-          <button
-            ref={closeButtonRef}
-            onClick={() => console.log('닫기')}
-            className="absolute right-5 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
-            aria-label="결제 모달 닫기"
-          >
-            <X className="size-6" />
-          </button>
         </div>
 
         <div className="h-px w-19/20 mx-auto bg-gray-200"></div>
 
         {/* 콘텐츠 */}
-        <div className="flex flex-col md:flex-row">
-          <PaymentInfoSection
-            merchantName={paymentInfo.merchantName}
-            productName={paymentInfo.productName}
-            quantity={paymentInfo.quantity}
-            totalAmount={paymentInfo.totalAmount}
-          />
+        {step === 'select-card' && (
+          <div className="flex flex-col md:flex-row">
+            <PaymentInfoSection
+              merchantName={paymentInfo.merchantName}
+              productName={paymentInfo.productName}
+              quantity={paymentInfo.quantity}
+              totalAmount={paymentInfo.totalAmount}
+            />
 
-          <CardSelectionSection
-            cards={CARDS}
-            bestDiscountCard={bestDiscountCard}
-            selectedCard={selectedCard}
-            onCardSelect={handleCardSelect}
-            onProceedToPayment={handleProceedToPayment}
-          />
-        </div>
+            <CardSelectionSection
+              cards={CARDS}
+              bestDiscountCard={bestDiscountCard}
+              selectedCard={selectedCard}
+              onCardSelect={handleCardSelect}
+              onProceedToPayment={handleProceedToPayment}
+            />
+          </div>
+        )}
 
         {/* 비밀번호 입력 단계 */}
         {step === 'enter-password' && selectedCard && (
@@ -174,68 +181,12 @@ export function PaymentModal({ paymentInfo, onPaymentComplete }: PaymentModalPro
 
         {/* 완료 단계 */}
         {step === 'complete' && (
-          <div className="absolute inset-0 bg-white z-10 flex flex-col">
-            <button
-              onClick={() => setStep('select-card')}
-              className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
-            >
-              <X className="size-6" />
-            </button>
-
-            <div className="flex-1 flex flex-col items-center px-6 py-18 max-w-md mx-auto w-full">
-              <div className="rounded-full bg-green-100 p-4 mb-4">
-                <CheckCircle className="size-8 text-green-500" />
-              </div>
-
-              <h3 className="text-xl font-bold mb-1">결제 완료</h3>
-              <p className="text-gray-600 mb-6 text-center">결제가 성공적으로 완료되었습니다.</p>
-
-              <div className="bg-blue-50 rounded-lg p-4 mb-6 w-full text-center">
-                <p className="text-sm text-gray-700">
-                  이용해주셔서 감사합니다. 결제 내역은 홈페이지에서 확인하실 수 있습니다.
-                </p>
-              </div>
-
-              <div className="bg-gray-100 rounded-lg p-4 w-full mb-6">
-                <div className="flex justify-between py-2">
-                  <span className="text-gray-700">상점명</span>
-                  <span className="font-medium text-gray-900">{paymentInfo.merchantName}</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-gray-700">상품명</span>
-                  <span className="font-medium text-gray-900">{paymentInfo.productName}</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-gray-700">수량</span>
-                  <span className="font-medium text-gray-900">{paymentInfo.quantity}개</span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-gray-700">결제 금액</span>
-                  <span className="font-bold text-gray-900">
-                    {paymentInfo.totalAmount.toLocaleString()}원
-                  </span>
-                </div>
-                <div className="flex justify-between py-2">
-                  <span className="text-gray-700">할인 금액</span>
-                  <span className="font-medium text-green-500">
-                    -{calculateDiscount.toLocaleString()}원
-                  </span>
-                </div>
-                <div className="flex justify-between py-2 border-t border-gray-200 mt-2 pt-3">
-                  <span className="text-gray-900 font-bold">최종 결제 금액</span>
-                  <span className="font-bold">{calculateFinalAmount.toLocaleString()}원</span>
-                </div>
-              </div>
-
-              <button
-                onClick={handleComplete}
-                className="w-full bg-black hover:bg-gray-800 text-white py-4 font-medium rounded-lg"
-                aria-label="결제 완료 확인"
-              >
-                확인
-              </button>
-            </div>
-          </div>
+          <PaymentComplete
+            paymentInfo={paymentInfo}
+            calculateDiscount={calculateDiscount}
+            calculateFinalAmount={calculateFinalAmount}
+            onComplete={handleComplete}
+          />
         )}
 
         {/* 에러 단계 */}

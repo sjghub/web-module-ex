@@ -1,4 +1,4 @@
-import { X } from 'lucide-react';
+import { X, ArrowLeft } from 'lucide-react';
 import { PaymentKeypad } from '@/components/payment-module/payment-keypad';
 import { CardInfo } from '@/constants/payment';
 
@@ -21,10 +21,10 @@ export function PasswordInputStep({
     <div className="absolute inset-0 bg-white z-10 flex flex-col items-center justify-center">
       <button
         onClick={onClose}
-        className="absolute right-4 top-4 text-gray-500 hover:text-gray-700"
+        className="absolute left-4 top-4 text-gray-500 hover:text-gray-700"
         aria-label="비밀번호 입력 취소"
       >
-        <X className="size-6" />
+        <ArrowLeft className="size-6" />
       </button>
 
       <div className="mb-6 text-center">
