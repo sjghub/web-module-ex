@@ -43,7 +43,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
 
     try {
-      const response = await fetch('http://localhost:8080/api/auth/signin', {
+      const response = await fetch('http://localhost:8080/auth/api/signin', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

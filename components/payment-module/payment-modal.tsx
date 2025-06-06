@@ -9,7 +9,7 @@ import { PaymentInfoSection } from './payment-info';
 import { CardSelectionSection } from './card-selection';
 import { PasswordInputStep } from './password-input';
 import { PaymentComplete } from './payment-complete';
-import { CARDS, PaymentStep, CardInfo } from '@/constants/payment';
+import { PaymentStep, CardInfo } from '@/constants/payment';
 
 export interface PaymentInfo {
   merchantName: string;
@@ -34,14 +34,8 @@ export function PaymentModal({ paymentInfo }: PaymentModalProps) {
     }
   }, []);
 
-  // 최고 할인율 카드 찾기 - 메모이제이션
-  const bestDiscountCard = useMemo(
-    () => CARDS.reduce((prev, current) => (prev.discount > current.discount ? prev : current)),
-    []
-  );
-
+  const [selectedCard, setSelectedCard] = useState<CardInfo | null>(null);
   const [step, setStep] = useState<PaymentStep>('select-card');
-  const [selectedCard, setSelectedCard] = useState<CardInfo | null>(bestDiscountCard);
   const [password, setPassword] = useState<string>('');
 
   // 비밀번호 입력 처리 - 이벤트 핸들러 메모이제이션
@@ -148,9 +142,9 @@ export function PaymentModal({ paymentInfo }: PaymentModalProps) {
             />
 
             <CardSelectionSection
-              cards={CARDS}
-              bestDiscountCard={bestDiscountCard}
-              selectedCard={selectedCard}
+              userId={1}
+              merchantId={7}
+              amount={paymentInfo.totalAmount}
               onCardSelect={handleCardSelect}
               onProceedToPayment={handleProceedToPayment}
             />
