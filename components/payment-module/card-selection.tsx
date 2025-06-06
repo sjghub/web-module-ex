@@ -1,8 +1,11 @@
+'use client';
+
 import Image from 'next/image';
 import { ThumbsUp } from 'lucide-react';
-import { CardInfo, CardRecommendation, CardRecommendationResponse } from '@/constants/payment';
+import { CardInfo } from '@/constants/payment';
 import { useEffect, useState } from 'react';
 import { useAuth } from '@/app/context/AuthContext';
+import { getCardRecommendations } from '@/app/actions/card';
 
 interface CardSelectionSectionProps {
   userId: number;
@@ -34,63 +37,39 @@ export function CardSelectionSection({
 
       try {
         const token = localStorage.getItem('accessToken');
-        console.log('Current Token:', token);
-
         let username = 'user'; // 기본값
+
         // 토큰 디코딩
         if (token) {
           const tokenParts = token.split('.');
           if (tokenParts.length === 3) {
             const payload = JSON.parse(atob(tokenParts[1]));
-            console.log('Token Payload:', payload);
-            console.log('Token Expiration:', new Date(payload.exp * 1000).toLocaleString());
             username = payload.sub; // 토큰에서 사용자 이름 가져오기
           }
         }
 
-        console.log('Request Body:', {
-          userId,
-          merchantId,
-          amount,
-        });
-
-        const response = await fetch('http://localhost:8082/module/api/card/recommend', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'X-User-Name': username,
-          },
-          body: JSON.stringify({
-            userId,
-            merchantId,
-            amount,
-          }),
-        });
-
-        const data: CardRecommendationResponse = await response.json();
-        console.log('Response Body:', data);
+        const data = await getCardRecommendations(userId, merchantId, amount, username);
 
         if (data.success) {
           const mappedCards: CardInfo[] = data.response.map((card, index) => ({
             id: index + 1,
             name: card.cardName,
             number: `(${card.cardNumber})`,
-            color: 'bg-gradient-to-r from-gray-800 to-gray-900', // 기본 색상
+            color: 'bg-gradient-to-r from-gray-800 to-gray-900',
             logo: card.imageUrl,
-            discount: card.discountAmount, // 퍼센트 대신 금액 사용
-            benefits: [], // API에서 제공하지 않는 정보
+            discount: card.discountAmount,
+            benefits: [],
             isDefaultCard: card.isDefaultCard,
           }));
 
           setCards(mappedCards);
 
-          // 할인 금액이 가장 높은 카드를 최고 혜택 카드로 설정
           const bestCard = mappedCards.reduce((prev, current) =>
             prev.discount > current.discount ? prev : current
           );
           setBestDiscountCard(bestCard);
-          setSelectedCard(bestCard); // 최고 혜택 카드를 초기 선택 상태로 설정
-          onCardSelect(bestCard); // 부모 컴포넌트에도 선택 상태 전달
+          setSelectedCard(bestCard);
+          onCardSelect(bestCard);
         }
       } catch (error) {
         console.error('카드 추천 정보를 가져오는데 실패했습니다:', error);
