@@ -322,7 +322,7 @@ export function CardSelectionSection({
                     <div className="flex flex-col justify-center">
                       <div className="flex items-center">
                         <p className="text-sm font-medium leading-tight">
-                          {card.cardNumber} {card.cardName}
+                          ({card.cardNumber}) {card.cardName}
                         </p>
                         {card.isDefaultCard && (
                           <span className="ml-2 bg-black text-white text-xs px-2 py-0.5 rounded-full">
