@@ -105,7 +105,23 @@ export function PaymentModal({ paymentInfo }: PaymentModalProps) {
     if (window.parent !== window) {
       window.parent.postMessage(paymentResult, '*');
     }
+
+    // 결제 완료 후 토큰 제거
+    localStorage.removeItem('accessToken');
   }, [paymentInfo.orderId, calculateFinalAmount, calculateDiscount, selectedCard]);
+
+  // 창이 닫힐 때 토큰 제거
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      localStorage.removeItem('accessToken');
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      localStorage.removeItem('accessToken');
+    };
+  }, []);
 
   return (
     <div
