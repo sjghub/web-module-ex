@@ -1,16 +1,13 @@
-import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
-import { SkipBackIcon as Backspace, RefreshCw } from "lucide-react";
+import { useState, useEffect } from 'react';
+import { Button } from '@/components/ui/button';
+import { SkipBackIcon as Backspace, RefreshCw } from 'lucide-react';
 
 type PaymentKeypadProps = {
   onNumberClick: (num: number) => void;
   onDeleteClick: () => void;
 };
 
-export function PaymentKeypad({
-  onNumberClick,
-  onDeleteClick,
-}: PaymentKeypadProps) {
+export function PaymentKeypad({ onNumberClick, onDeleteClick }: PaymentKeypadProps) {
   const [pinNumbers, setPinNumbers] = useState<number[]>([]);
 
   useEffect(() => {

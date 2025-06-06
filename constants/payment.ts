@@ -20,8 +20,34 @@ export interface CardInfo {
   name: string;
   number: string;
   color: string;
-  logo: string;
+  logo?: string;
+  imageUrl?: string;
   discount: number;
   benefits: string[];
   isDefaultCard?: boolean;
+  isMyCard?: boolean;
+}
+
+export interface MyCard {
+  id: number;
+  cardName: string;
+  cardNumber: string;
+  imageUrl: string;
+  isDefaultCard: boolean;
+}
+
+export interface MyCardResponse {
+  success: boolean;
+  status: string;
+  message: string;
+  response: MyCard[];
+}
+
+export interface PaymentRequest {
+  userId: number;
+  cardId: number;
+  amount: number;
+  merchantId: number;
+  productName: string;
+  paymentPinCode: string;
 }
