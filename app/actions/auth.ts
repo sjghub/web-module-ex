@@ -22,16 +22,14 @@ export async function signin(id: string, password: string): Promise<CommonRespon
     throw new Error('아이디와 비밀번호를 모두 입력해주세요.');
   }
   console.log("로그인 요청: ", { id, password });
+
   try {
-    const response = await fetch('https://internal-alb.example.com/auth/api/signin', {
+    const response = await fetch('/api/auth/signin', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        username: id,
-        password: password,
-      } as SigninRequest),
+      body: JSON.stringify({ username: id, password }),
     });
 
     if (!response.ok) {
@@ -49,7 +47,7 @@ export async function signin(id: string, password: string): Promise<CommonRespon
 
     return result;
   } catch (error) {
-    console.log("error = ", error)
+    console.error("error = ", error);
     throw error;
   }
 }
