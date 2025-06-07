@@ -9,7 +9,7 @@ export async function getCardRecommendations(
   username: string
 ) {
   try {
-    const response = await fetch('https://internal-alb.example.com/module/api/card/recommend', {
+    const response = await fetch('api/module/card/recommend', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
