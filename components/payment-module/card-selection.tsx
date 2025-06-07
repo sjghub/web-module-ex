@@ -181,8 +181,8 @@ export function CardSelectionSection({
         <div className="flex items-center px-3">
           <div className="flex items-center justify-center min-w-[100px] min-h-[100px] mr-3 overflow-hidden">
             <Image
-              src="/everydiscount.png"
-              alt="카드의정석 EVERY DISCOUNT"
+              src={recommendedCards[0].imageUrl || '/placeholder.svg'}
+              alt={recommendedCards[0].name}
               width={100}
               height={100}
               className="h-24 w-auto -rotate-90 object-contain"
