@@ -1,5 +1,3 @@
-'use server';
-
 import { CardRecommendationResponse, MyCardResponse } from '@/constants/payment';
 
 export async function getCardRecommendations(
@@ -9,7 +7,7 @@ export async function getCardRecommendations(
   username: string
 ) {
   try {
-    const response = await fetch('api/module/card/recommend', {
+    const response = await fetch('/api/module/card/recommend', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
