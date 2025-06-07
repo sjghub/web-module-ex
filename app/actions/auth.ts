@@ -21,7 +21,7 @@ export async function signin(id: string, password: string): Promise<CommonRespon
   if (!id || !password) {
     throw new Error('아이디와 비밀번호를 모두 입력해주세요.');
   }
-
+  console.log("로그인 요청: ", { id, password });
   try {
     const response = await fetch('https://internal-alb.example.com/auth/api/signin', {
       method: 'POST',
@@ -49,6 +49,7 @@ export async function signin(id: string, password: string): Promise<CommonRespon
 
     return result;
   } catch (error) {
+    console.log("error = ", error)
     throw error;
   }
 }
