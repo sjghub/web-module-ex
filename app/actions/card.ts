@@ -37,9 +37,12 @@ export async function getCardRecommendations(
 
 export async function getMyCards(username: string): Promise<MyCardResponse> {
   try {
-    const response = await fetch('https://internal-alb.example.com/service/api/card/my', {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) throw new Error('로그인이 필요합니다.');
+    const response = await fetch('/api/service/card/my', {
       headers: {
         'X-User-Name': username,
+        Authorization: `Bearer ${accessToken}`,
       },
       cache: 'no-store',
     });
