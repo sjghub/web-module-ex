@@ -1,5 +1,3 @@
-'use server';
-
 import { PaymentRequest } from '@/constants/payment';
 
 interface PaymentResponse {
