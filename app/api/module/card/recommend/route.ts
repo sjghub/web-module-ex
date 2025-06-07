@@ -5,12 +5,13 @@ export async function POST(req: NextRequest) {
         const body = await req.json();
         const { userId, merchantId, amount } = body;
         const username = req.headers.get('x-user-name') || '';
-
+        const authHeader = req.headers.get('authorization');
         const response = await fetch('https://internal-alb.example.com/module/api/card/recommend', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
                 'X-User-Name': username,
+                ...(authHeader && { Authorization: authHeader }),
             },
             body: JSON.stringify({ userId, merchantId, amount }),
         });
@@ -23,6 +24,7 @@ export async function POST(req: NextRequest) {
         }
 
         const data = await response.json();
+        console.log("data = ", data );
         return NextResponse.json(data);
     } catch (error) {
         console.error('카드 추천 API 실패:', error);

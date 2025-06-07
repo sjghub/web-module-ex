@@ -7,10 +7,13 @@ export async function getCardRecommendations(
   username: string
 ) {
   try {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) throw new Error('로그인이 필요합니다.');
     const response = await fetch('/api/module/card/recommend', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        Authorization: `Bearer ${accessToken}`,
         'X-User-Name': username,
       },
       body: JSON.stringify({
