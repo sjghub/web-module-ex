@@ -19,11 +19,14 @@ export async function processPayment(
   request: PaymentRequest
 ): Promise<PaymentResponse> {
   try {
-    const response = await fetch('https://internal-alb.example.com/module/api/payment/pay', {
+    const accessToken = localStorage.getItem('accessToken');
+    if (!accessToken) throw new Error('로그인이 필요합니다.');
+    const response = await fetch('/api/module/payment/pay', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'X-User-Name': username,
+        Authorization: `Bearer ${accessToken}`,
       },
       body: JSON.stringify(request),
       cache: 'no-store',
