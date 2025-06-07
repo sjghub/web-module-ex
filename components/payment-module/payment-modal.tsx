@@ -9,7 +9,8 @@ import { PaymentInfoSection } from './payment-info';
 import { CardSelectionSection } from './card-selection';
 import { PasswordInputStep } from './password-input';
 import { PaymentComplete } from './payment-complete';
-import { CARDS, PaymentStep, CardInfo } from '@/constants/payment';
+import { PaymentStep, CardInfo, PaymentRequest } from '@/constants/payment';
+import { processPayment } from '@/app/actions/payment';
 
 export interface PaymentInfo {
   merchantName: string;
@@ -34,34 +35,60 @@ export function PaymentModal({ paymentInfo }: PaymentModalProps) {
     }
   }, []);
 
-  // 최고 할인율 카드 찾기 - 메모이제이션
-  const bestDiscountCard = useMemo(
-    () => CARDS.reduce((prev, current) => (prev.discount > current.discount ? prev : current)),
-    []
-  );
-
+  const [selectedCard, setSelectedCard] = useState<CardInfo | null>(null);
   const [step, setStep] = useState<PaymentStep>('select-card');
-  const [selectedCard, setSelectedCard] = useState<CardInfo | null>(bestDiscountCard);
   const [password, setPassword] = useState<string>('');
+  const [error, setError] = useState<string | null>(null);
 
   // 비밀번호 입력 처리 - 이벤트 핸들러 메모이제이션
   const handlePasswordInput = useCallback(
-    (value: number) => {
+    async (value: number) => {
       if (password.length < 6) {
         const newPassword = password + value;
         setPassword(newPassword);
 
-        if (newPassword.length === 6) {
+        if (newPassword.length === 6 && selectedCard) {
           setStep('processing');
 
-          // 결제 처리 시뮬레이션
-          setTimeout(() => {
-            setStep('complete');
-          }, 2000);
+          try {
+            const token = localStorage.getItem('accessToken');
+            let username = 'user';
+
+            if (token) {
+              const tokenParts = token.split('.');
+              if (tokenParts.length === 3) {
+                const payload = JSON.parse(atob(tokenParts[1]));
+                username = payload.sub;
+              }
+            }
+
+            const response = await processPayment(username, {
+              userId: 1,
+              cardId: selectedCard.id,
+              amount: paymentInfo.totalAmount,
+              merchantId: 7,
+              productName: paymentInfo.productName,
+              paymentPinCode: newPassword,
+            } as PaymentRequest);
+
+            if (response.success) {
+              setStep('complete');
+            } else {
+              if (response.message === '간편 결제 비밀번호가 일치하지 않습니다.') {
+                setStep('error');
+                setError('간편 결제 비밀번호가 일치하지 않습니다. 다시 시도해주세요.');
+              } else {
+                throw new Error(response.message || '결제 처리에 실패했습니다.');
+              }
+            }
+          } catch (err) {
+            console.error('결제 처리 중 오류:', err);
+            setStep('error');
+          }
         }
       }
     },
-    [password]
+    [password, selectedCard, paymentInfo]
   );
 
   // 비밀번호 지우기 - 이벤트 핸들러 메모이제이션
@@ -86,8 +113,8 @@ export function PaymentModal({ paymentInfo }: PaymentModalProps) {
   // 할인 금액 계산 - 계산 함수 메모이제이션
   const calculateDiscount = useMemo(() => {
     if (!selectedCard) return 0;
-    return Math.round((paymentInfo.totalAmount * selectedCard.discount) / 100);
-  }, [selectedCard, paymentInfo.totalAmount]);
+    return selectedCard.discount;
+  }, [selectedCard]);
 
   // 최종 결제 금액 계산 - 계산 함수 메모이제이션
   const calculateFinalAmount = useMemo(() => {
@@ -111,7 +138,23 @@ export function PaymentModal({ paymentInfo }: PaymentModalProps) {
     if (window.parent !== window) {
       window.parent.postMessage(paymentResult, '*');
     }
+
+    // 결제 완료 후 토큰 제거
+    localStorage.removeItem('accessToken');
   }, [paymentInfo.orderId, calculateFinalAmount, calculateDiscount, selectedCard]);
+
+  // 창이 닫힐 때 토큰 제거
+  useEffect(() => {
+    const handleBeforeUnload = () => {
+      localStorage.removeItem('accessToken');
+    };
+
+    window.addEventListener('beforeunload', handleBeforeUnload);
+    return () => {
+      window.removeEventListener('beforeunload', handleBeforeUnload);
+      localStorage.removeItem('accessToken');
+    };
+  }, []);
 
   return (
     <div
@@ -148,9 +191,9 @@ export function PaymentModal({ paymentInfo }: PaymentModalProps) {
             />
 
             <CardSelectionSection
-              cards={CARDS}
-              bestDiscountCard={bestDiscountCard}
-              selectedCard={selectedCard}
+              userId={1}
+              merchantId={7}
+              amount={paymentInfo.totalAmount}
               onCardSelect={handleCardSelect}
               onProceedToPayment={handleProceedToPayment}
             />
@@ -165,6 +208,7 @@ export function PaymentModal({ paymentInfo }: PaymentModalProps) {
             onClose={() => setStep('select-card')}
             onPasswordInput={handlePasswordInput}
             onPasswordDelete={handlePasswordDelete}
+            error={error}
           />
         )}
 
@@ -199,9 +243,15 @@ export function PaymentModal({ paymentInfo }: PaymentModalProps) {
             </div>
             <h3 className="mb-1 text-lg font-medium">결제 실패</h3>
             <p className="mb-6 text-sm text-gray-600">
-              결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.
+              {error || '결제 처리 중 오류가 발생했습니다. 다시 시도해주세요.'}
             </p>
-            <Button onClick={() => setStep('select-card')} className="w-40">
+            <Button
+              onClick={() => {
+                setStep('select-card');
+                setPassword('');
+              }}
+              className="w-40 bg-black text-white"
+            >
               다시 시도
             </Button>
           </div>

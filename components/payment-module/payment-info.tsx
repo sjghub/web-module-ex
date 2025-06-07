@@ -41,7 +41,7 @@ export function PaymentInfoSection({
         <p className="text-sm text-gray-600">최대 혜택을 받을 수 있는 카드를 추천해드릴까요?</p>
         <div className="flex justify-end mt-2">
           <a
-            href="https://pc.wooricard.com/dcpc/main.do"
+            href="https://www.paydeuk.com"
             target="_blank"
             rel="noopener noreferrer"
             className="text-sm text-blue-600 font-medium hover:underline"

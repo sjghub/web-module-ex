@@ -1,4 +1,4 @@
-import { X, ArrowLeft } from 'lucide-react';
+import { ArrowLeft } from 'lucide-react';
 import { PaymentKeypad } from '@/components/payment-module/payment-keypad';
 import { CardInfo } from '@/constants/payment';
 
@@ -8,6 +8,7 @@ interface PasswordInputStepProps {
   onClose: () => void;
   onPasswordInput: (value: number) => void;
   onPasswordDelete: () => void;
+  error: string | null;
 }
 
 export function PasswordInputStep({
