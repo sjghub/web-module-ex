@@ -1,9 +1,5 @@
 'use server';
 process.env.NODE_TLS_REJECT_UNAUTHORIZED = "0"; // 개발 환경용 (주의)
-interface SigninRequest {
-  username: string;
-  password: string;
-}
 
 interface TokenResponse {
   accessToken: string;
