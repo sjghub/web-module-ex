@@ -23,7 +23,7 @@ export async function signin(id: string, password: string): Promise<CommonRespon
   }
 
   try {
-    const response = await fetch('http://localhost:8080/auth/api/signin', {
+    const response = await fetch('https://internal-alb.example.com/auth/api/signin', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

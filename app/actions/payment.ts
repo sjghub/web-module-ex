@@ -19,7 +19,7 @@ export async function processPayment(
   request: PaymentRequest
 ): Promise<PaymentResponse> {
   try {
-    const response = await fetch('http://localhost:8082/module/api/payment/pay', {
+    const response = await fetch('https://internal-alb.example.com/module/api/payment/pay', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

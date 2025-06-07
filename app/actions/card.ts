@@ -9,7 +9,7 @@ export async function getCardRecommendations(
   username: string
 ) {
   try {
-    const response = await fetch('http://localhost:8082/module/api/card/recommend', {
+    const response = await fetch('https://internal-alb.example.com/module/api/card/recommend', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -36,7 +36,7 @@ export async function getCardRecommendations(
 
 export async function getMyCards(username: string): Promise<MyCardResponse> {
   try {
-    const response = await fetch('http://localhost:8081/service/api/card/my', {
+    const response = await fetch('https://internal-alb.example.com/service/api/card/my', {
       headers: {
         'X-User-Name': username,
       },
